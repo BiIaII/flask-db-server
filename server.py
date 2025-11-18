@@ -1,9 +1,9 @@
 from flask import Flask, request
 import sqlite3
+import os
 
 app = Flask(__name__)
 
-# Function to insert a user into the database
 def add_user_to_db(username):
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
@@ -21,9 +21,24 @@ def add_user():
     add_user_to_db(username)
     return f"User '{username}' added successfully!"
 
+@app.route("/get_users")
+def get_users():
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username FROM users")
+    rows = cursor.fetchall()
+    conn.close()
+
+    result = ""
+    for row in rows:
+        result += f"{row[0]} - {row[1]}\n"
+
+    return f"Users:\n{result}"
+
 @app.route("/")
 def index():
-    return "Server is running! Use /add_user?name=YourName"
+    return "Server is running online! Use /add_user?name=YourName"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
